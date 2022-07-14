@@ -331,6 +331,21 @@ static bool getTripleTargetID(std::string bundled_co_entry_id, const void* code_
   return true;
 }
 
+static bool isNavi2xProcessor(const std::string& processor) {
+  return processor.size() == 7 && 0 == std::memcmp(processor.c_str(), "gfx103", 6);
+}
+
+static bool isProcessorCompatible(const std::string& co_processor,
+                                  const std::string& agent_processor) {
+  if (co_processor == agent_processor)
+    return true;
+
+  if (isNavi2xProcessor(co_processor) && isNavi2xProcessor(agent_processor))
+    return true;
+
+  return false;
+}
+
 static bool isCodeObjectCompatibleWithDevice(std::string co_triple_target_id,
                                              std::string agent_triple_target_id) {
   // Primitive Check
@@ -363,7 +378,7 @@ static bool isCodeObjectCompatibleWithDevice(std::string co_triple_target_id,
   if (!agent_triple_target_id.empty()) return false;
 
   // Check for compatibility
-  if (agent_isa_processor != co_processor) return false;
+  if (!isProcessorCompatible(co_processor, agent_isa_processor)) return false;
   if (co_sram_ecc != ' ') {
     if (co_sram_ecc != isa_sram_ecc) return false;
   }
